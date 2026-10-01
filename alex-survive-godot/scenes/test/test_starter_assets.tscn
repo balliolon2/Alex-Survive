@@ -12,6 +12,7 @@
 [ext_resource type="PackedScene" path="res://scenes/environment/comic_post_process.tscn" id="10_post"]
 
 
+
 [sub_resource type="ProceduralSkyMaterial" id="ProceduralSkyMaterial_sky"]
 sky_top_color = Color(0.38, 0.46, 0.58, 1)
 sky_horizon_color = Color(0.68, 0.70, 0.74, 1)
@@ -39,9 +40,8 @@ size = Vector2(20, 20)
 
 [node name="TestStarterAssets" type="Node3D"]
 
-
-
 [node name="WorldEnvironment" type="WorldEnvironment" parent="."]
+
 environment = SubResource("Environment_world")
 
 [node name="DirectionalLight3D" type="DirectionalLight3D" parent="."]

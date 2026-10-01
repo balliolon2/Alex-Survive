@@ -105,7 +105,13 @@ def build_alex(base_dir):
     # Neck & Head
     add_limb_segment("Neck", (0.0, 0.0, 1.48), (0.0, 0.0, 1.58), 0.065, mat_skin, "Neck")
     add_box_part("Head", (0.0, 0.0, 1.66), (0.22, 0.22, 0.24), mat_skin, "Head")
-    add_box_part("Hair", (0.0, -0.01, 1.74), (0.23, 0.23, 0.10), mat_hair, "Head")
+    
+    # Hair: Full survivor hair covering top, back of skull, sides, and front fringe
+    add_box_part("Hair_Top", (0.0, 0.0, 1.76), (0.24, 0.24, 0.08), mat_hair, "Head")
+    add_box_part("Hair_Back", (0.0, 0.095, 1.66), (0.23, 0.05, 0.20), mat_hair, "Head")
+    add_box_part("Hair_Side_L", (0.105, 0.01, 1.68), (0.03, 0.18, 0.16), mat_hair, "Head")
+    add_box_part("Hair_Side_R", (-0.105, 0.01, 1.68), (0.03, 0.18, 0.16), mat_hair, "Head")
+    add_box_part("Hair_Front", (0.0, -0.105, 1.74), (0.23, 0.03, 0.06), mat_hair, "Head")
 
     # Left Arm: Perfectly connected chain from shoulder to hand
     # Shoulder joint sphere seamlessly blends jacket into arm
@@ -128,13 +134,14 @@ def build_alex(base_dir):
     add_limb_segment("UpperLeg_L", (0.13, 0.0, 0.95), (0.13, 0.0, 0.50), 0.082, mat_pants, "UpperLeg.L")
     add_sphere_part("Knee_L", (0.13, 0.0, 0.50), 0.075, mat_pants, "LowerLeg.L")
     add_limb_segment("LowerLeg_L", (0.13, 0.0, 0.50), (0.13, 0.0, 0.12), 0.072, mat_pants, "LowerLeg.L")
-    add_box_part("Boot_L", (0.13, 0.04, 0.07), (0.13, 0.22, 0.14), mat_boots, "Foot.L")
+    # Boot extends forward along -Y: heel at +0.06, toes at -0.16
+    add_box_part("Boot_L", (0.13, -0.05, 0.07), (0.13, 0.22, 0.14), mat_boots, "Foot.L")
 
     # Right Leg: Connected chain
     add_limb_segment("UpperLeg_R", (-0.13, 0.0, 0.95), (-0.13, 0.0, 0.50), 0.082, mat_pants, "UpperLeg.R")
     add_sphere_part("Knee_R", (-0.13, 0.0, 0.50), 0.075, mat_pants, "LowerLeg.R")
     add_limb_segment("LowerLeg_R", (-0.13, 0.0, 0.50), (-0.13, 0.0, 0.12), 0.072, mat_pants, "LowerLeg.R")
-    add_box_part("Boot_R", (-0.13, 0.04, 0.07), (0.13, 0.22, 0.14), mat_boots, "Foot.R")
+    add_box_part("Boot_R", (-0.13, -0.05, 0.07), (0.13, 0.22, 0.14), mat_boots, "Foot.R")
 
     # Create root object at (0, 0, 0) so joined mesh origin is (0, 0, 0)
     bpy.ops.mesh.primitive_cube_add(size=0.001, location=(0, 0, 0))
@@ -201,12 +208,12 @@ def build_alex(base_dir):
     # Left Leg
     make_bone("UpperLeg.L", (0.13, 0.0, 0.95), (0.13, 0.0, 0.50), "Hips")
     make_bone("LowerLeg.L", (0.13, 0.0, 0.50), (0.13, 0.0, 0.12), "UpperLeg.L")
-    make_bone("Foot.L", (0.13, 0.0, 0.12), (0.13, 0.14, 0.0), "LowerLeg.L")
+    make_bone("Foot.L", (0.13, 0.0, 0.12), (0.13, -0.14, 0.0), "LowerLeg.L")
 
     # Right Leg
     make_bone("UpperLeg.R", (-0.13, 0.0, 0.95), (-0.13, 0.0, 0.50), "Hips")
     make_bone("LowerLeg.R", (-0.13, 0.0, 0.50), (-0.13, 0.0, 0.12), "UpperLeg.R")
-    make_bone("Foot.R", (-0.13, 0.0, 0.12), (-0.13, 0.14, 0.0), "LowerLeg.R")
+    make_bone("Foot.R", (-0.13, 0.0, 0.12), (-0.13, -0.14, 0.0), "LowerLeg.R")
 
     # SOCKET 2: Backpack holster socket (mounted high on backpack, pointing upwards/slanted)
     make_bone("Socket_Backpack", (0.12, 0.22, 1.35), (0.12, 0.22, 1.58), "Chest")
