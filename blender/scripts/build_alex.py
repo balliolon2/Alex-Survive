@@ -1,6 +1,7 @@
 import bpy
 import math
 import os
+from mathutils import Vector, Quaternion
 
 def clear_scene():
     bpy.ops.wm.read_factory_settings(use_empty=True)
@@ -45,19 +46,47 @@ def build_alex(base_dir):
         obj = bpy.context.active_object
         obj.name = name
         obj.scale = scale
-        bpy.ops.object.transform_apply(scale=True)
+        bpy.ops.object.transform_apply(location=False, rotation=True, scale=True)
         obj.data.materials.append(mat)
         vg = obj.vertex_groups.new(name=vg_name)
         vg.add(list(range(len(obj.data.vertices))), 1.0, 'REPLACE')
         mesh_parts.append(obj)
         return obj
 
-    def add_cyl_part(name, loc, radius, depth, mat, vg_name, rot=(0,0,0)):
-        bpy.ops.mesh.primitive_cylinder_add(
-            vertices=12, radius=radius, depth=depth, location=loc, rotation=rot
+    def add_sphere_part(name, loc, radius, mat, vg_name):
+        bpy.ops.mesh.primitive_uv_sphere_add(
+            segments=12, ring_count=8, radius=radius, location=loc
         )
         obj = bpy.context.active_object
         obj.name = name
+        bpy.ops.object.transform_apply(location=False, rotation=True, scale=True)
+        obj.data.materials.append(mat)
+        vg = obj.vertex_groups.new(name=vg_name)
+        vg.add(list(range(len(obj.data.vertices))), 1.0, 'REPLACE')
+        mesh_parts.append(obj)
+        return obj
+
+    def add_limb_segment(name, p_start, p_end, radius, mat, vg_name, segments=12):
+        v = Vector(p_end) - Vector(p_start)
+        length = v.length
+        center = (Vector(p_start) + Vector(p_end)) * 0.5
+        
+        bpy.ops.mesh.primitive_cylinder_add(
+            vertices=segments,
+            radius=radius,
+            depth=length,
+            location=center
+        )
+        obj = bpy.context.active_object
+        obj.name = name
+        
+        # Orient cylinder from default (0, 0, 1) along vector v
+        dir_v = v.normalized()
+        rot_quat = Vector((0.0, 0.0, 1.0)).rotation_difference(dir_v)
+        obj.rotation_mode = 'QUATERNION'
+        obj.rotation_quaternion = rot_quat
+        bpy.ops.object.transform_apply(location=False, rotation=True, scale=True)
+        
         obj.data.materials.append(mat)
         vg = obj.vertex_groups.new(name=vg_name)
         vg.add(list(range(len(obj.data.vertices))), 1.0, 'REPLACE')
@@ -70,47 +99,60 @@ def build_alex(base_dir):
     
     # Backpack mounted on back
     add_box_part("Backpack", (0.0, 0.18, 1.28), (0.34, 0.16, 0.40), mat_pack, "Chest")
-    # Small bedroll on bottom of pack
-    add_cyl_part("Bedroll", (0.0, 0.18, 1.04), 0.07, 0.38, mat_pack, "Chest", rot=(0, math.pi/2.0, 0))
+    # Small bedroll on bottom of pack (horizontal along X)
+    add_limb_segment("Bedroll", (-0.18, 0.18, 1.04), (0.18, 0.18, 1.04), 0.07, mat_pack, "Chest")
 
     # Neck & Head
-    add_cyl_part("Neck", (0.0, 0.0, 1.52), 0.065, 0.10, mat_skin, "Neck")
+    add_limb_segment("Neck", (0.0, 0.0, 1.48), (0.0, 0.0, 1.58), 0.065, mat_skin, "Neck")
     add_box_part("Head", (0.0, 0.0, 1.66), (0.22, 0.22, 0.24), mat_skin, "Head")
     add_box_part("Hair", (0.0, -0.01, 1.74), (0.23, 0.23, 0.10), mat_hair, "Head")
 
-    # Left Arm (A-pose: ~45 deg downward)
-    # Shoulder L at (0.26, 0, 1.42), Elbow at (0.44, 0, 1.18), Hand at (0.60, 0, 0.94)
-    add_cyl_part("UpperArm_L", (0.35, 0.0, 1.30), 0.065, 0.28, mat_jacket, "UpperArm.L", rot=(0, math.pi/4.0, 0))
-    add_cyl_part("LowerArm_L", (0.52, 0.0, 1.06), 0.055, 0.28, mat_skin, "LowerArm.L", rot=(0, math.pi/4.0, 0))
-    add_box_part("Hand_L", (0.64, 0.0, 0.90), (0.09, 0.09, 0.11), mat_wrap, "Hand.L")
+    # Left Arm: Perfectly connected chain from shoulder to hand
+    # Shoulder joint sphere seamlessly blends jacket into arm
+    add_sphere_part("Shoulder_L", (0.22, 0.0, 1.42), 0.078, mat_jacket, "Chest")
+    add_limb_segment("UpperArm_L", (0.22, 0.0, 1.42), (0.44, 0.0, 1.18), 0.072, mat_jacket, "UpperArm.L")
+    add_sphere_part("Elbow_L", (0.44, 0.0, 1.18), 0.064, mat_skin, "LowerArm.L")
+    add_limb_segment("LowerArm_L", (0.44, 0.0, 1.18), (0.60, 0.0, 0.94), 0.058, mat_skin, "LowerArm.L")
+    add_sphere_part("Wrist_L", (0.60, 0.0, 0.94), 0.054, mat_wrap, "Hand.L")
+    add_limb_segment("Hand_L", (0.60, 0.0, 0.94), (0.66, 0.0, 0.85), 0.055, mat_wrap, "Hand.L")
 
-    # Right Arm (A-pose: ~45 deg downward)
-    # Shoulder R at (-0.26, 0, 1.42), Elbow at (-0.44, 0, 1.18), Hand at (-0.60, 0, 0.94)
-    add_cyl_part("UpperArm_R", (-0.35, 0.0, 1.30), 0.065, 0.28, mat_jacket, "UpperArm.R", rot=(0, -math.pi/4.0, 0))
-    add_cyl_part("LowerArm_R", (-0.52, 0.0, 1.06), 0.055, 0.28, mat_skin, "LowerArm.R", rot=(0, -math.pi/4.0, 0))
-    add_box_part("Hand_R", (-0.64, 0.0, 0.90), (0.09, 0.09, 0.11), mat_wrap, "Hand.R")
+    # Right Arm: Perfectly connected chain from shoulder to hand
+    add_sphere_part("Shoulder_R", (-0.22, 0.0, 1.42), 0.078, mat_jacket, "Chest")
+    add_limb_segment("UpperArm_R", (-0.22, 0.0, 1.42), (-0.44, 0.0, 1.18), 0.072, mat_jacket, "UpperArm.R")
+    add_sphere_part("Elbow_R", (-0.44, 0.0, 1.18), 0.064, mat_skin, "LowerArm.R")
+    add_limb_segment("LowerArm_R", (-0.44, 0.0, 1.18), (-0.60, 0.0, 0.94), 0.058, mat_skin, "LowerArm.R")
+    add_sphere_part("Wrist_R", (-0.60, 0.0, 0.94), 0.054, mat_wrap, "Hand.R")
+    add_limb_segment("Hand_R", (-0.60, 0.0, 0.94), (-0.66, 0.0, 0.85), 0.055, mat_wrap, "Hand.R")
 
-    # Left Leg
-    add_cyl_part("UpperLeg_L", (0.13, 0.0, 0.72), 0.08, 0.44, mat_pants, "UpperLeg.L")
-    add_cyl_part("LowerLeg_L", (0.13, 0.0, 0.32), 0.07, 0.40, mat_pants, "LowerLeg.L")
+    # Left Leg: Connected chain
+    add_limb_segment("UpperLeg_L", (0.13, 0.0, 0.95), (0.13, 0.0, 0.50), 0.082, mat_pants, "UpperLeg.L")
+    add_sphere_part("Knee_L", (0.13, 0.0, 0.50), 0.075, mat_pants, "LowerLeg.L")
+    add_limb_segment("LowerLeg_L", (0.13, 0.0, 0.50), (0.13, 0.0, 0.12), 0.072, mat_pants, "LowerLeg.L")
     add_box_part("Boot_L", (0.13, 0.04, 0.07), (0.13, 0.22, 0.14), mat_boots, "Foot.L")
 
-    # Right Leg
-    add_cyl_part("UpperLeg_R", (-0.13, 0.0, 0.72), 0.08, 0.44, mat_pants, "UpperLeg.R")
-    add_cyl_part("LowerLeg_R", (-0.13, 0.0, 0.32), 0.07, 0.40, mat_pants, "LowerLeg.R")
+    # Right Leg: Connected chain
+    add_limb_segment("UpperLeg_R", (-0.13, 0.0, 0.95), (-0.13, 0.0, 0.50), 0.082, mat_pants, "UpperLeg.R")
+    add_sphere_part("Knee_R", (-0.13, 0.0, 0.50), 0.075, mat_pants, "LowerLeg.R")
+    add_limb_segment("LowerLeg_R", (-0.13, 0.0, 0.50), (-0.13, 0.0, 0.12), 0.072, mat_pants, "LowerLeg.R")
     add_box_part("Boot_R", (-0.13, 0.04, 0.07), (0.13, 0.22, 0.14), mat_boots, "Foot.R")
+
+    # Create root object at (0, 0, 0) so joined mesh origin is (0, 0, 0)
+    bpy.ops.mesh.primitive_cube_add(size=0.001, location=(0, 0, 0))
+    root_obj = bpy.context.active_object
+    root_obj.name = "Alex_Mesh"
 
     # Join all body parts into single Character Mesh
     bpy.ops.object.select_all(action='DESELECT')
     for p in mesh_parts:
         p.select_set(True)
-    bpy.context.view_layer.objects.active = mesh_parts[0]
+    root_obj.select_set(True)
+    bpy.context.view_layer.objects.active = root_obj
     bpy.ops.object.join()
     alex_mesh = bpy.context.active_object
     alex_mesh.name = "Alex_Mesh"
     
-    for poly in alex_mesh.data.polygons:
-        poly.use_smooth = True
+    # Apply all transforms to zero out location, rotation, scale
+    bpy.ops.object.transform_apply(location=True, rotation=True, scale=True)
 
     # 3. Create Armature with Sockets
     bpy.ops.object.armature_add(location=(0, 0, 0))
@@ -144,17 +186,17 @@ def build_alex(base_dir):
     make_bone("Head", (0, 0, 1.58), (0, 0, 1.80), "Neck")
 
     # Left Arm
-    make_bone("UpperArm.L", (0.22, 0.0, 1.44), (0.44, 0.0, 1.18), "Chest")
+    make_bone("UpperArm.L", (0.22, 0.0, 1.42), (0.44, 0.0, 1.18), "Chest")
     make_bone("LowerArm.L", (0.44, 0.0, 1.18), (0.60, 0.0, 0.94), "UpperArm.L")
-    make_bone("Hand.L", (0.60, 0.0, 0.94), (0.68, 0.0, 0.82), "LowerArm.L")
+    make_bone("Hand.L", (0.60, 0.0, 0.94), (0.66, 0.0, 0.85), "LowerArm.L")
 
     # Right Arm
-    make_bone("UpperArm.R", (-0.22, 0.0, 1.44), (-0.44, 0.0, 1.18), "Chest")
+    make_bone("UpperArm.R", (-0.22, 0.0, 1.42), (-0.44, 0.0, 1.18), "Chest")
     make_bone("LowerArm.R", (-0.44, 0.0, 1.18), (-0.60, 0.0, 0.94), "UpperArm.R")
-    make_bone("Hand.R", (-0.60, 0.0, 0.94), (-0.68, 0.0, 0.82), "LowerArm.R")
+    make_bone("Hand.R", (-0.60, 0.0, 0.94), (-0.66, 0.0, 0.85), "LowerArm.R")
     
-    # SOCKET 1: Hand.R active weapon socket
-    make_bone("Socket_Hand_R", (-0.64, 0.0, 0.90), (-0.64, 0.0, 1.05), "Hand.R")
+    # SOCKET 1: Hand.R active weapon socket (at wrist/palm, pointing forward)
+    make_bone("Socket_Hand_R", (-0.63, 0.0, 0.89), (-0.63, -0.20, 0.89), "Hand.R")
 
     # Left Leg
     make_bone("UpperLeg.L", (0.13, 0.0, 0.95), (0.13, 0.0, 0.50), "Hips")
@@ -166,8 +208,8 @@ def build_alex(base_dir):
     make_bone("LowerLeg.R", (-0.13, 0.0, 0.50), (-0.13, 0.0, 0.12), "UpperLeg.R")
     make_bone("Foot.R", (-0.13, 0.0, 0.12), (-0.13, 0.14, 0.0), "LowerLeg.R")
 
-    # SOCKET 2: Backpack holster socket
-    make_bone("Socket_Backpack", (0.09, 0.24, 1.25), (0.09, 0.24, 1.48), "Chest")
+    # SOCKET 2: Backpack holster socket (mounted high on backpack, pointing upwards/slanted)
+    make_bone("Socket_Backpack", (0.12, 0.22, 1.35), (0.12, 0.22, 1.58), "Chest")
 
     bpy.ops.object.mode_set(mode='OBJECT')
 
