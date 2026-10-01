@@ -1,3 +1,13 @@
 .agents
 skills-lock.json
 docs
+
+# Blender backup & autosave files
+*.blend1
+*.blend2
+*.blend@
+
+# OS generated files
+Thumbs.db
+[Dd]esktop.ini
+.DS_Store
