@@ -57,12 +57,36 @@ void fragment() {
 	float d_bc = get_linear_depth(SCREEN_UV + vec2(0.0,            pixel_size.y), INV_PROJECTION_MATRIX);
 	float d_br = get_linear_depth(SCREEN_UV + vec2( pixel_size.x,  pixel_size.y), INV_PROJECTION_MATRIX);
 	
-	// Sobel depth gradient
-	float depth_gx = (-1.0 * d_tl) + (1.0 * d_tr) + (-2.0 * d_ml) + (2.0 * d_mr) + (-1.0 * d_bl) + (1.0 * d_br);
-	float depth_gy = (-1.0 * d_tl) + (-2.0 * d_tc) + (-1.0 * d_tr) + (1.0 * d_bl) + (2.0 * d_bc) + (1.0 * d_br);
-	float depth_edge = length(vec2(depth_gx, depth_gy)) / max(center_depth, 0.5);
+	// Depth edge detection using second derivative (Laplacian / opposite pairs)
+	// A first-derivative Sobel operator falsely detects constant slope on flat ground/walls.
+	// Second derivative is mathematically ZERO on any sloping plane, but spikes at depth jumps.
+	float raw_center = texture(depth_texture, SCREEN_UV).r;
+	bool is_sky = (raw_center <= 0.0001);
 	
-	// Sobel normal gradient
+	float depth_edge = 0.0;
+	if (!is_sky) {
+		float max_d = center_depth * 10.0;
+		float d_l = min(d_ml, max_d);
+		float d_r = min(d_mr, max_d);
+		float d_t = min(d_tc, max_d);
+		float d_b = min(d_bc, max_d);
+		
+		float diff_x = abs(d_l + d_r - 2.0 * center_depth);
+		float diff_y = abs(d_t + d_b - 2.0 * center_depth);
+		
+		float d_1 = min(d_tl, max_d);
+		float d_2 = min(d_br, max_d);
+		float d_3 = min(d_tr, max_d);
+		float d_4 = min(d_bl, max_d);
+		
+		float diff_d1 = abs(d_1 + d_2 - 2.0 * center_depth);
+		float diff_d2 = abs(d_3 + d_4 - 2.0 * center_depth);
+		
+		float total_diff = max(max(diff_x, diff_y), max(diff_d1, diff_d2));
+		depth_edge = total_diff / max(center_depth, 0.5);
+	}
+	
+	// Sample 8-neighbor normals
 	vec3 n_tl = get_view_normal(SCREEN_UV + vec2(-pixel_size.x, -pixel_size.y));
 	vec3 n_tc = get_view_normal(SCREEN_UV + vec2(0.0,           -pixel_size.y));
 	vec3 n_tr = get_view_normal(SCREEN_UV + vec2( pixel_size.x, -pixel_size.y));
@@ -72,9 +96,17 @@ void fragment() {
 	vec3 n_bc = get_view_normal(SCREEN_UV + vec2(0.0,            pixel_size.y));
 	vec3 n_br = get_view_normal(SCREEN_UV + vec2( pixel_size.x,  pixel_size.y));
 	
-	vec3 norm_gx = (-1.0 * n_tl) + (1.0 * n_tr) + (-2.0 * n_ml) + (2.0 * n_mr) + (-1.0 * n_bl) + (1.0 * n_br);
-	vec3 norm_gy = (-1.0 * n_tl) + (-2.0 * n_tc) + (-1.0 * n_tr) + (1.0 * n_bl) + (2.0 * n_bc) + (1.0 * n_br);
-	float norm_edge = length(norm_gx) + length(norm_gy);
+	// Normal crease detection using dot product of opposite neighbors
+	// Normal dot product measures the true angular difference between surfaces.
+	// Gentle curves have 1.0 - dot ~= 0, while creases (> 45 deg) spike to > 0.3.
+	float norm_edge = 0.0;
+	if (!is_sky) {
+		float d_lr = 1.0 - dot(n_ml, n_mr);
+		float d_tb = 1.0 - dot(n_tc, n_bc);
+		float d_d1 = 1.0 - dot(n_tl, n_br);
+		float d_d2 = 1.0 - dot(n_tr, n_bl);
+		norm_edge = max(max(d_lr, d_tb), max(d_d1, d_d2));
+	}
 	
 	// Evaluate edge thresholds
 	float is_depth_edge = step(depth_threshold, depth_edge);
@@ -83,15 +115,17 @@ void fragment() {
 	
 	vec3 final_color = base_color;
 	
-	// Stepped comic lighting (preserves color hue while quantizing brightness)
-	if (enable_tone_stepping) {
+	// Stepped comic lighting (preserves color hue while quantizing brightness into graphic novel bands)
+	if (enable_tone_stepping && !is_sky) {
 		float bands = float(max(shadow_bands, 2));
 		float luma = dot(final_color, vec3(0.299, 0.587, 0.114));
-		float stepped_luma = floor(luma * bands + 0.35) / bands;
-		final_color = final_color * (max(stepped_luma, 0.08) / max(luma, 0.001));
+		float stepped_luma = (floor(luma * bands) + 0.5) / bands;
+		float factor = clamp(stepped_luma / max(luma, 0.02), 0.4, 2.0);
+		final_color = clamp(final_color * factor, vec3(0.02), vec3(1.0));
 	}
 	
 	// Halftone / Ben-Day screen tone in shaded areas (angled at 45 degrees)
+	// Bounded dot radius prevents halftone dots from coalescing into solid black sheets.
 	if (enable_halftone) {
 		float luma = dot(final_color, vec3(0.299, 0.587, 0.114));
 		if (luma < halftone_shadow_cutoff) {
@@ -100,7 +134,8 @@ void fragment() {
 			vec2 dot_uv = rot45 * ((SCREEN_UV * tex_size) / (halftone_scale * 2.5));
 			vec2 grid = fract(dot_uv) - vec2(0.5);
 			float dist = length(grid);
-			float dot_radius = clamp((halftone_shadow_cutoff - luma) * 0.9, 0.0, 0.48);
+			// Max dot radius capped at 0.38 so dots never merge into a solid black mass
+			float dot_radius = clamp((halftone_shadow_cutoff - luma) * 0.65, 0.0, 0.38);
 			if (dist < dot_radius) {
 				final_color = mix(final_color, outline_color.rgb, halftone_intensity);
 			}

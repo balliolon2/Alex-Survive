@@ -55,13 +55,13 @@ mesh = SubResource("PlaneMesh_floor")
 
 [node name="HandSocketAttachment" type="BoneAttachment3D" parent="Alex/Alex_Armature" index="1"]
 bone_name = "Socket_Hand_R"
-bone_idx = 11
+bone_idx = 13
 
 [node name="LeadPipe" parent="Alex/Alex_Armature/HandSocketAttachment" instance=ExtResource("3_pipe")]
 
 [node name="BackpackSocketAttachment" type="BoneAttachment3D" parent="Alex/Alex_Armature" index="2"]
 bone_name = "Socket_Backpack"
-bone_idx = 18
+bone_idx = 6
 
 [node name="SpikedBat" parent="Alex/Alex_Armature/BackpackSocketAttachment" instance=ExtResource("4_bat")]
 
