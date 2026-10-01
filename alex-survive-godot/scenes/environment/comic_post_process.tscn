@@ -1,0 +1,13 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://scripts/systems/comic_post_process.gd" id="1_post_script"]
+[ext_resource type="Material" path="res://assets/shaders/comic_post_process.tres" id="2_post_mat"]
+
+[sub_resource type="QuadMesh" id="QuadMesh_screen"]
+material = ExtResource("2_post_mat")
+size = Vector2(2, 2)
+
+[node name="ComicPostProcess" type="MeshInstance3D"]
+extra_cull_margin = 16384.0
+mesh = SubResource("QuadMesh_screen")
+script = ExtResource("1_post_script")

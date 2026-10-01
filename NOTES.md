@@ -31,10 +31,21 @@ Notes on the user's setup, toolchain, MCP integrations, and technical pipeline.
 - Export target: `alex-survive-godot/assets/models/<category>/<asset_name>.glb`
 - Godot 4 automatically imports `.glb` and provides scene generation.
 
-### Step 3: Comic Post-Processing Shader in Godot
-- Post-process quad / `CompositorEffect` or Fullscreen Quad with Custom Shader:
-  - Sobel Edge detection on Depth & Normal buffers for ink outlines.
-  - Step function / banded diffuse lighting for graphic novel contrast.
+### Step 3: Comic Post-Processing Component in Godot
+- **Component Scene**: `alex-survive-godot/scenes/environment/comic_post_process.tscn`
+- **Controller Script**: `alex-survive-godot/scripts/systems/comic_post_process.gd`
+- **Shader Resource**: `alex-survive-godot/assets/shaders/comic_post_process.tres`
+- **How to use**:
+  - Drag and drop `comic_post_process.tscn` as a child node of any 3D level scene or player camera.
+  - Automatically outlines any imported 3D mesh (characters, buildings, barricades, zombies).
+- **Key Inspector Parameters**:
+  - `outline_thickness` (default: 1.2): Width of ink outlines in pixels.
+  - `depth_threshold` (default: 0.035): Distance silhouette sensitivity.
+  - `normal_threshold` (default: 0.45): Surface crease and corner sensitivity.
+  - `enable_tone_stepping` (default: true): Quantizes lighting into comic book bands.
+  - `shadow_bands` (default: 4): Number of distinct lighting bands.
+  - `enable_halftone` (default: true): Authentic 45-degree Ben-Day screen tones in deep shadow.
+  - `halftone_scale` (default: 3.5): Density and spacing of halftone dots.
 
 ---
 

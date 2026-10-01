@@ -1,0 +1,17 @@
+[gd_resource type="ShaderMaterial" load_steps=2 format=3]
+
+[ext_resource type="Shader" path="res://assets/shaders/comic_post_process.gdshader" id="1_comic_shader"]
+
+[resource]
+render_priority = 100
+shader = ExtResource("1_comic_shader")
+shader_parameter/outline_color = Color(0.04, 0.04, 0.05, 1)
+shader_parameter/outline_thickness = 1.2
+shader_parameter/depth_threshold = 0.035
+shader_parameter/normal_threshold = 0.45
+shader_parameter/enable_tone_stepping = true
+shader_parameter/shadow_bands = 4
+shader_parameter/enable_halftone = true
+shader_parameter/halftone_scale = 3.5
+shader_parameter/halftone_intensity = 0.45
+shader_parameter/halftone_shadow_cutoff = 0.42

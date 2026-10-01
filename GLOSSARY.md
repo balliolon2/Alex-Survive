@@ -50,3 +50,12 @@ Canonical terminology for entities, systems, items, and state models in the Alex
 - **`NightPhase`**: Wave defense phase (18:00 - 06:00) with darkness, siren, and horde spawns.
 - **`HordeWave`**: Active group of infected spawned during the night, escalating in composition and density.
 - **`Permadeath`**: Single-life game session loop that ends in a statistics summary upon player death.
+
+---
+
+## 5. Rendering & Visual Pipeline
+
+- **`ComicShader` (`PostProcessOutline`)**: Screen-space spatial shader applied over the 3D viewport to generate graphic novel ink outlines and tone separation.
+- **`SobelFilter` (`EdgeDetection`)**: Convolution kernel algorithm sampling depth and normal texture buffers to locate geometry silhouettes and surface creases.
+- **`DepthThreshold` / `NormalThreshold`**: Configurable tolerance parameters to prevent flat surfaces (floors/terrain) from rendering unwanted outline noise while keeping sharp edges crisp.
+- **`HalftoneShading` (`ScreenTone`)**: Dot matrix or crosshatch pattern applied strictly to shaded/shadowed pixel areas to simulate printed comic book ink.
