@@ -10,6 +10,8 @@ Canonical terminology for entities, systems, items, and state models in the Alex
 - **`PlayerState`**: Discrete locomotion state machine enum (`IDLE`, `WALK`, `SPRINT`, `CROUCH`, `DODGE`, `DEAD`) preventing conflicting actions and governing locomotion physics.
 - **`DodgeAction`**: Grounded, directional evasion step with brief invulnerability window (i-frames) and stamina cost, replacing standard platformer jump.
 - **`CameraRig`**: SpringArm3D-based over-the-shoulder follow rig with pitch/yaw collision protection.
+- **`Socket_Hand_R`**: Dedicated right-hand armature bone marker positioned at the palm grip for attaching active melee weapons.
+- **`Socket_Backpack`**: Dedicated armature bone marker located on the backpack strap for holstering idle weapons.
 - **Infected (`Enemy`)**: The overarching term for all undead enemies. Sub-types:
   - **`Walker`**: Standard slow-moving infected that shuffles toward targets and claws at barricades.
   - **`Runner`**: High-speed, agile infected that sprints, leaps, and flanks.
