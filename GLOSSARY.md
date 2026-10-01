@@ -7,6 +7,9 @@ Canonical terminology for entities, systems, items, and state models in the Alex
 ## 1. Entities & Characters
 
 - **Alex (`Player`)**: The playable survivor character. Uses `CharacterBody3D` with third-person locomotion, stamina management, and inventory.
+- **`PlayerState`**: Discrete locomotion state machine enum (`IDLE`, `WALK`, `SPRINT`, `CROUCH`, `DODGE`, `DEAD`) preventing conflicting actions and governing locomotion physics.
+- **`DodgeAction`**: Grounded, directional evasion step with brief invulnerability window (i-frames) and stamina cost, replacing standard platformer jump.
+- **`CameraRig`**: SpringArm3D-based over-the-shoulder follow rig with pitch/yaw collision protection.
 - **Infected (`Enemy`)**: The overarching term for all undead enemies. Sub-types:
   - **`Walker`**: Standard slow-moving infected that shuffles toward targets and claws at barricades.
   - **`Runner`**: High-speed, agile infected that sprints, leaps, and flanks.
@@ -19,9 +22,10 @@ Canonical terminology for entities, systems, items, and state models in the Alex
 
 ## 2. Survival Systems & Vitals
 
-- **Health (`hp`)**: Hit points of player or entities. Dropping to zero triggers entity death or game over.
-- **Stamina (`stamina`)**: Energy pool depleted by sprint, dodge, and melee attacks; regenerates when idle or walking.
-- **Hunger (`hunger`)**: Metabolic stat depleted over time; thresholds affect stamina recovery rate and damage output.
+- **`VitalsComponent`**: Dedicated modular component node managing health, stamina, and hunger with decoupled event signals.
+- **Health (`hp`)**: Hit points of player or entities (0–100). Dropping to zero triggers entity death or game over.
+- **Stamina (`stamina`)**: Energy pool (0–100) depleted by sprint, dodge, and melee attacks; regenerates when idle or walking.
+- **Hunger (`hunger`)**: Metabolic stat (0–100) depleted over time; thresholds affect stamina recovery rate and damage output.
 - **Durability (`durability`)**: Health of a weapon or tool. Decreases per hit; breaks at zero unless repaired at a Workbench.
 - **Barricade (`WindowBarricade`, `DoorReinforcement`)**: Contextual fortifiable structure placed over building breach points.
 - **Workbench (`Workbench`)**: In-world station used for repairing damaged weapons and applying weapon reinforcements/mods.

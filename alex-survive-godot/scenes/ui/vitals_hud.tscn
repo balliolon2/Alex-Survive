@@ -1,0 +1,175 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://scripts/ui/vitals_hud.gd" id="1_hud_script"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_hud_bg"]
+bg_color = Color(0.08, 0.09, 0.11, 0.88)
+border_width_left = 3
+border_width_top = 3
+border_width_right = 3
+border_width_bottom = 3
+border_color = Color(0.03, 0.03, 0.04, 1)
+corner_radius_top_left = 6
+corner_radius_top_right = 6
+corner_radius_bottom_right = 6
+corner_radius_bottom_left = 6
+shadow_color = Color(0, 0, 0, 0.45)
+shadow_size = 6
+shadow_offset = Vector2(2, 3)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_bar_bg"]
+bg_color = Color(0.12, 0.13, 0.15, 1)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0.03, 0.03, 0.04, 1)
+corner_radius_top_left = 3
+corner_radius_top_right = 3
+corner_radius_bottom_right = 3
+corner_radius_bottom_left = 3
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_hp_fill"]
+bg_color = Color(0.85, 0.22, 0.22, 1)
+border_width_left = 1
+border_width_top = 1
+border_width_bottom = 1
+border_color = Color(0.05, 0.05, 0.05, 1)
+corner_radius_top_left = 2
+corner_radius_top_right = 2
+corner_radius_bottom_right = 2
+corner_radius_bottom_left = 2
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_stamina_fill"]
+bg_color = Color(0.96, 0.65, 0.15, 1)
+border_width_left = 1
+border_width_top = 1
+border_width_bottom = 1
+border_color = Color(0.05, 0.05, 0.05, 1)
+corner_radius_top_left = 2
+corner_radius_top_right = 2
+corner_radius_bottom_right = 2
+corner_radius_bottom_left = 2
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_hunger_fill"]
+bg_color = Color(0.24, 0.68, 0.32, 1)
+border_width_left = 1
+border_width_top = 1
+border_width_bottom = 1
+border_color = Color(0.05, 0.05, 0.05, 1)
+corner_radius_top_left = 2
+corner_radius_top_right = 2
+corner_radius_bottom_right = 2
+corner_radius_bottom_left = 2
+
+[node name="VitalsHUD" type="CanvasLayer" node_paths=PackedStringArray("health_bar", "stamina_bar", "hunger_bar", "hunger_badge", "health_label", "stamina_label", "hunger_label")]
+script = ExtResource("1_hud_script")
+health_bar = NodePath("RootMargin/HUDPanel/VBox/HPContainer/HPBar")
+stamina_bar = NodePath("RootMargin/HUDPanel/VBox/StaminaContainer/StaminaBar")
+hunger_bar = NodePath("RootMargin/HUDPanel/VBox/HungerContainer/HungerBar")
+hunger_badge = NodePath("RootMargin/HUDPanel/VBox/BadgeContainer/HungerBadge")
+health_label = NodePath("RootMargin/HUDPanel/VBox/HPContainer/HPLabel")
+stamina_label = NodePath("RootMargin/HUDPanel/VBox/StaminaContainer/StaminaLabel")
+hunger_label = NodePath("RootMargin/HUDPanel/VBox/HungerContainer/HungerLabel")
+
+[node name="RootMargin" type="Control" parent="."]
+layout_mode = 3
+anchors_preset = 2
+anchor_top = 1.0
+anchor_bottom = 1.0
+offset_left = 24.0
+offset_top = -175.0
+offset_right = 324.0
+offset_bottom = -25.0
+grow_vertical = 0
+
+[node name="HUDPanel" type="PanelContainer" parent="RootMargin"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_hud_bg")
+
+[node name="Margin" type="MarginContainer" parent="RootMargin/HUDPanel"]
+layout_mode = 2
+theme_override_constants/margin_left = 14
+theme_override_constants/margin_top = 10
+theme_override_constants/margin_right = 14
+theme_override_constants/margin_bottom = 10
+
+[node name="VBox" type="VBoxContainer" parent="RootMargin/HUDPanel"]
+layout_mode = 2
+theme_override_constants/separation = 6
+
+[node name="BadgeContainer" type="HBoxContainer" parent="RootMargin/HUDPanel/VBox"]
+layout_mode = 2
+
+[node name="SurvivorName" type="Label" parent="RootMargin/HUDPanel/VBox/BadgeContainer"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.9, 0.92, 0.95, 1)
+theme_override_font_sizes/font_size = 13
+text = "ALEX"
+
+[node name="HungerBadge" type="Label" parent="RootMargin/HUDPanel/VBox/BadgeContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_colors/font_color = Color(0.4, 0.9, 0.4, 1)
+theme_override_font_sizes/font_size = 11
+text = "[ WELL-FED +10% STAMINA ]"
+horizontal_alignment = 2
+
+[node name="HPContainer" type="VBoxContainer" parent="RootMargin/HUDPanel/VBox"]
+layout_mode = 2
+theme_override_constants/separation = 1
+
+[node name="HPLabel" type="Label" parent="RootMargin/HUDPanel/VBox/HPContainer"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.92, 0.4, 0.4, 1)
+theme_override_font_sizes/font_size = 11
+text = "HP  100 / 100"
+
+[node name="HPBar" type="ProgressBar" parent="RootMargin/HUDPanel/VBox/HPContainer"]
+custom_minimum_size = Vector2(0, 14)
+layout_mode = 2
+theme_override_styles/background = SubResource("StyleBoxFlat_bar_bg")
+theme_override_styles/fill = SubResource("StyleBoxFlat_hp_fill")
+value = 100.0
+show_percentage = false
+
+[node name="StaminaContainer" type="VBoxContainer" parent="RootMargin/HUDPanel/VBox"]
+layout_mode = 2
+theme_override_constants/separation = 1
+
+[node name="StaminaLabel" type="Label" parent="RootMargin/HUDPanel/VBox/StaminaContainer"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.95, 0.75, 0.3, 1)
+theme_override_font_sizes/font_size = 11
+text = "STAMINA  100 / 100"
+
+[node name="StaminaBar" type="ProgressBar" parent="RootMargin/HUDPanel/VBox/StaminaContainer"]
+custom_minimum_size = Vector2(0, 12)
+layout_mode = 2
+theme_override_styles/background = SubResource("StyleBoxFlat_bar_bg")
+theme_override_styles/fill = SubResource("StyleBoxFlat_stamina_fill")
+value = 100.0
+show_percentage = false
+
+[node name="HungerContainer" type="VBoxContainer" parent="RootMargin/HUDPanel/VBox"]
+layout_mode = 2
+theme_override_constants/separation = 1
+
+[node name="HungerLabel" type="Label" parent="RootMargin/HUDPanel/VBox/HungerContainer"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.45, 0.85, 0.5, 1)
+theme_override_font_sizes/font_size = 11
+text = "HUNGER  100%"
+
+[node name="HungerBar" type="ProgressBar" parent="RootMargin/HUDPanel/VBox/HungerContainer"]
+custom_minimum_size = Vector2(0, 10)
+layout_mode = 2
+theme_override_styles/background = SubResource("StyleBoxFlat_bar_bg")
+theme_override_styles/fill = SubResource("StyleBoxFlat_hunger_fill")
+value = 100.0
+show_percentage = false

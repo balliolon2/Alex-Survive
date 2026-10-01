@@ -1,0 +1,133 @@
+[gd_scene format=3]
+
+[ext_resource type="PackedScene" path="res://scenes/characters/player.tscn" id="1_player"]
+[ext_resource type="PackedScene" path="res://scenes/ui/vitals_hud.tscn" id="2_hud"]
+[ext_resource type="PackedScene" path="res://scenes/environment/comic_post_process.tscn" id="3_post"]
+
+[sub_resource type="ProceduralSkyMaterial" id="ProceduralSkyMaterial_sky"]
+sky_top_color = Color(0.35, 0.42, 0.52, 1)
+sky_horizon_color = Color(0.62, 0.65, 0.7, 1)
+ground_bottom_color = Color(0.18, 0.2, 0.22, 1)
+ground_horizon_color = Color(0.62, 0.65, 0.7, 1)
+
+[sub_resource type="Sky" id="Sky_env"]
+sky_material = SubResource("ProceduralSkyMaterial_sky")
+
+[sub_resource type="Environment" id="Environment_world"]
+background_mode = 2
+sky = SubResource("Sky_env")
+ambient_light_source = 2
+ambient_light_color = Color(0.38, 0.4, 0.42, 1)
+ambient_light_energy = 0.5
+tonemap_mode = 2
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_ground"]
+albedo_color = Color(0.38, 0.4, 0.42, 1)
+roughness = 0.85
+
+[sub_resource type="PlaneMesh" id="PlaneMesh_ground"]
+material = SubResource("StandardMaterial3D_ground")
+size = Vector2(40, 40)
+
+[sub_resource type="WorldBoundaryShape3D" id="WorldBoundaryShape3D_ground"]
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_obstacle"]
+albedo_color = Color(0.6, 0.45, 0.35, 1)
+roughness = 0.7
+
+[sub_resource type="BoxMesh" id="BoxMesh_block"]
+material = SubResource("StandardMaterial3D_obstacle")
+size = Vector3(2, 1.2, 0.6)
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_block"]
+size = Vector3(2, 1.2, 0.6)
+
+[sub_resource type="BoxMesh" id="BoxMesh_tunnel_roof"]
+material = SubResource("StandardMaterial3D_obstacle")
+size = Vector3(4, 0.4, 3)
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_tunnel_roof"]
+size = Vector3(4, 0.4, 3)
+
+[sub_resource type="BoxMesh" id="BoxMesh_pillar"]
+material = SubResource("StandardMaterial3D_obstacle")
+size = Vector3(0.4, 1.4, 0.4)
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_pillar"]
+size = Vector3(0.4, 1.4, 0.4)
+
+[node name="TestPlayerVitals" type="Node3D"]
+
+[node name="WorldEnvironment" type="WorldEnvironment" parent="."]
+environment = SubResource("Environment_world")
+
+[node name="DirectionalLight3D" type="DirectionalLight3D" parent="."]
+transform = Transform3D(0.866025, -0.353553, 0.353553, 0, 0.707107, 0.707107, -0.5, -0.612372, 0.612372, 8, 12, 8)
+light_color = Color(1, 0.96, 0.88, 1)
+light_energy = 1.2
+shadow_enabled = true
+shadow_bias = 0.03
+
+[node name="Ground" type="StaticBody3D" parent="."]
+collision_mask = 0
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Ground"]
+shape = SubResource("WorldBoundaryShape3D_ground")
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="Ground"]
+mesh = SubResource("PlaneMesh_ground")
+
+[node name="Obstacles" type="Node3D" parent="."]
+
+[node name="Barricade1" type="StaticBody3D" parent="Obstacles"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.6, -4)
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Obstacles/Barricade1"]
+shape = SubResource("BoxShape3D_block")
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="Obstacles/Barricade1"]
+mesh = SubResource("BoxMesh_block")
+
+[node name="Barricade2" type="StaticBody3D" parent="Obstacles"]
+transform = Transform3D(0.866025, 0, 0.5, 0, 1, 0, -0.5, 0, 0.866025, 4, 0.6, -2)
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Obstacles/Barricade2"]
+shape = SubResource("BoxShape3D_block")
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="Obstacles/Barricade2"]
+mesh = SubResource("BoxMesh_block")
+
+[node name="CrouchTunnel" type="StaticBody3D" parent="Obstacles"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -5, 0, 0)
+
+[node name="Roof" type="CollisionShape3D" parent="Obstacles/CrouchTunnel"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.5, 0)
+shape = SubResource("BoxShape3D_tunnel_roof")
+
+[node name="RoofMesh" type="MeshInstance3D" parent="Obstacles/CrouchTunnel"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.5, 0)
+mesh = SubResource("BoxMesh_tunnel_roof")
+
+[node name="PillarL" type="CollisionShape3D" parent="Obstacles/CrouchTunnel"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1.8, 0.7, 0)
+shape = SubResource("BoxShape3D_pillar")
+
+[node name="PillarLMesh" type="MeshInstance3D" parent="Obstacles/CrouchTunnel"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1.8, 0.7, 0)
+mesh = SubResource("BoxMesh_pillar")
+
+[node name="PillarR" type="CollisionShape3D" parent="Obstacles/CrouchTunnel"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1.8, 0.7, 0)
+shape = SubResource("BoxShape3D_pillar")
+
+[node name="PillarRMesh" type="MeshInstance3D" parent="Obstacles/CrouchTunnel"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1.8, 0.7, 0)
+mesh = SubResource("BoxMesh_pillar")
+
+[node name="Player" parent="." instance=ExtResource("1_player")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.1, 0)
+
+[node name="VitalsHUD" parent="." instance=ExtResource("2_hud")]
+player_path = NodePath("../Player")
+
+[node name="ComicPostProcess" parent="." instance=ExtResource("3_post")]
